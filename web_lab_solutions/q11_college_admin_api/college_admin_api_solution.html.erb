@@ -1,0 +1,86 @@
+<h1>College Administration REST API - Rails</h1>
+
+<h2>Run</h2>
+<pre>
+rails new college_admin --api
+cd college_admin
+rails generate model Student name:string email:string course:string year_of_study:integer
+rails generate controller Api::Students
+rails db:create db:migrate
+rails server
+</pre>
+
+<h2>Student Model</h2>
+<pre>
+class Student &lt; ApplicationRecord
+  validates :name, :email, :course, :year_of_study, presence: true
+  validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }
+  scope :by_course, -&gt;(course) { where(course: course) }
+end
+</pre>
+
+<h2>routes.rb</h2>
+<pre>
+Rails.application.routes.draw do
+  namespace :api do
+    resources :students do
+      collection do
+        get :search
+      end
+    end
+  end
+end
+</pre>
+
+<h2>Controller</h2>
+<pre>
+class Api::StudentsController &lt; ApplicationController
+  before_action :set_student, only: %i[show update destroy]
+
+  def index
+    render json: Student.all
+  end
+
+  def show
+    render json: @student
+  end
+
+  def create
+    student = Student.new(student_params)
+    if student.save
+      render json: student, status: :created
+    else
+      render json: { errors: student.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
+  def update
+    if @student.update(student_params)
+      render json: @student
+    else
+      render json: { errors: @student.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    @student.destroy
+    head :no_content
+  end
+
+  def search
+    render json: Student.by_course(params[:course])
+  end
+
+  private
+
+  def set_student
+    @student = Student.find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: "Student not found" }, status: :not_found
+  end
+
+  def student_params
+    params.require(:student).permit(:name, :email, :course, :year_of_study)
+  end
+end
+</pre>

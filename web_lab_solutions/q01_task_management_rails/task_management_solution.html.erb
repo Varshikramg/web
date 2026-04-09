@@ -1,0 +1,51 @@
+<h1>Task Management System - Rails MVC</h1>
+
+<h2>Run</h2>
+<pre>
+rails new task_manager
+cd task_manager
+rails generate scaffold Task title:string description:text status:string due_date:date
+rails db:create db:migrate
+rails server
+</pre>
+
+<h2>Files To Update</h2>
+<pre>
+app/models/task.rb
+config/routes.rb
+app/views/tasks/_form.html.erb
+</pre>
+
+<h2>task.rb</h2>
+<pre>
+class Task &lt; ApplicationRecord
+  validates :title, :status, presence: true
+  STATUSES = ["pending", "in_progress", "completed"]
+  validates :status, inclusion: { in: STATUSES }
+end
+</pre>
+
+<h2>routes.rb</h2>
+<pre>
+Rails.application.routes.draw do
+  root "tasks#index"
+  resources :tasks
+end
+</pre>
+
+<h2>_form.html.erb</h2>
+<pre>
+&lt;%= form_with(model: task) do |form| %&gt;
+  &lt;%= form.label :title %&gt;
+  &lt;%= form.text_field :title %&gt;
+  &lt;%= form.label :description %&gt;
+  &lt;%= form.text_area :description %&gt;
+  &lt;%= form.label :status %&gt;
+  &lt;%= form.select :status, Task::STATUSES %&gt;
+  &lt;%= form.label :due_date %&gt;
+  &lt;%= form.date_field :due_date %&gt;
+  &lt;%= form.submit %&gt;
+&lt;% end %&gt;
+</pre>
+
+<p>This gives full CRUD using Rails scaffold and MVC architecture.</p>

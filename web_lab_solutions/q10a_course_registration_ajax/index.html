@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Course Registration</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #eef4ff; padding: 24px; }
+    .panel { background: white; max-width: 700px; margin: auto; padding: 24px; border-radius: 12px; }
+    .hidden { display: none; }
+    .error { color: #b00020; }
+    .success { color: #0b7d30; }
+    label { display: block; margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <h1>Student Course Registration</h1>
+    <form id="regForm">
+      <label>Name
+        <input type="text" id="studentName">
+      </label>
+
+      <p><strong>Courses</strong></p>
+      <label><input type="checkbox" value="4"> Mathematics - 4 credits</label>
+      <label><input type="checkbox" value="3"> Physics - 3 credits</label>
+      <label><input type="checkbox" value="2"> Chemistry - 2 credits</label>
+      <label><input type="checkbox" value="5"> Computer Science - 5 credits</label>
+
+      <p><strong>Semester</strong></p>
+      <label><input type="radio" name="semester" value="Fall"> Fall</label>
+      <label><input type="radio" name="semester" value="Winter"> Winter</label>
+      <label><input type="radio" name="semester" value="Spring"> Spring</label>
+
+      <div id="timingBox" class="hidden">
+        <label>Preferred Class Timings
+          <select id="timing">
+            <option value="">Select timing</option>
+            <option>Morning</option>
+            <option>Afternoon</option>
+            <option>Evening</option>
+          </select>
+        </label>
+      </div>
+
+      <p>Total Credits: <strong id="credits">0</strong></p>
+      <button type="submit">Submit</button>
+      <button type="reset">Reset</button>
+      <p id="message"></p>
+    </form>
+  </div>
+
+  <script>
+    const creditsEl = document.getElementById("credits");
+    const form = document.getElementById("regForm");
+    const messageEl = document.getElementById("message");
+    const timingBox = document.getElementById("timingBox");
+
+    function updateCredits() {
+      const total = [...document.querySelectorAll('input[type="checkbox"]:checked')]
+        .reduce((sum, box) => sum + Number(box.value), 0);
+      creditsEl.textContent = total;
+    }
+
+    function validateForm() {
+      const name = document.getElementById("studentName").value.trim();
+      const checkedCourses = document.querySelectorAll('input[type="checkbox"]:checked').length;
+      const semester = document.querySelector('input[name="semester"]:checked');
+      const timing = document.getElementById("timing").value;
+      if (name.length < 2) return "Enter a valid student name.";
+      if (!checkedCourses) return "Select at least one course.";
+      if (!semester) return "Choose a semester.";
+      if (semester.value === "Fall" && !timing) return "Select preferred class timing for Fall semester.";
+      return "";
+    }
+
+    document.querySelectorAll('input[type="checkbox"]').forEach((box) => box.addEventListener("change", updateCredits));
+    document.querySelectorAll('input[name="semester"]').forEach((radio) => {
+      radio.addEventListener("change", () => {
+        timingBox.classList.toggle("hidden", radio.value !== "Fall");
+      });
+    });
+
+    form.addEventListener("reset", () => {
+      setTimeout(() => {
+        creditsEl.textContent = "0";
+        timingBox.classList.add("hidden");
+        messageEl.textContent = "";
+      }, 0);
+    });
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const error = validateForm();
+      if (error) {
+        messageEl.className = "error";
+        messageEl.textContent = error;
+        return;
+      }
+      messageEl.textContent = "Sending data...";
+      setTimeout(() => {
+        messageEl.className = "success";
+        messageEl.textContent = `Registration successful. Total credits: ${creditsEl.textContent}`;
+      }, 900);
+    });
+  </script>
+</body>
+</html>

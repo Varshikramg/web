@@ -1,0 +1,48 @@
+<h1>Blog Platform - Rails</h1>
+
+<h2>Run</h2>
+<pre>
+rails new blog_platform
+cd blog_platform
+bundle add bcrypt
+rails action_text:install
+rails generate model User name:string email:string password_digest:string
+rails generate model Category name:string
+rails generate model Post title:string published:boolean user:references category:references
+rails generate model Comment body:text user:references post:references
+rails generate controller Sessions new create destroy
+rails db:create db:migrate
+rails server
+</pre>
+
+<h2>Models</h2>
+<pre>
+class User &lt; ApplicationRecord
+  has_secure_password
+  has_many :posts, dependent: :destroy
+  has_many :comments, dependent: :destroy
+end
+
+class Category &lt; ApplicationRecord
+  has_many :posts
+end
+
+class Post &lt; ApplicationRecord
+  belongs_to :user
+  belongs_to :category
+  has_rich_text :content
+  has_many :comments, dependent: :destroy
+end
+
+class Comment &lt; ApplicationRecord
+  belongs_to :user
+  belongs_to :post
+end
+</pre>
+
+<h2>Notes</h2>
+<pre>
+For tags you can either:
+1. Add a `tags` string column to posts and store comma-separated tags, or
+2. Use the `acts-as-taggable-on` gem for a proper tagging system.
+</pre>

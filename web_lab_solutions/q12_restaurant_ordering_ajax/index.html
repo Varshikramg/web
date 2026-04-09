@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restaurant Ordering Form</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #fff8ef; padding: 24px; }
+    .card { max-width: 720px; margin: auto; background: white; padding: 24px; border-radius: 12px; }
+    .hidden { display: none; }
+    .error { color: #b00020; }
+    .success { color: #0b7d30; }
+    label { display: block; margin: 10px 0; }
+    input[type="text"] { width: 100%; padding: 10px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Restaurant Ordering Form</h1>
+    <form id="orderForm">
+      <label>Customer Name
+        <input type="text" id="customerName" placeholder="Enter your name">
+      </label>
+
+      <p><strong>Menu Items</strong></p>
+      <label><input type="checkbox" value="120"> Pizza - Rs.120</label>
+      <label><input type="checkbox" value="90"> Burger - Rs.90</label>
+      <label><input type="checkbox" value="70"> Pasta - Rs.70</label>
+      <label><input type="checkbox" value="50"> Juice - Rs.50</label>
+
+      <p><strong>Order Type</strong></p>
+      <label><input type="radio" name="orderType" value="Delivery"> Delivery</label>
+      <label><input type="radio" name="orderType" value="Pickup"> Pickup</label>
+
+      <div id="addressBox" class="hidden">
+        <label>Delivery Address
+          <input type="text" id="address" placeholder="Enter delivery address">
+        </label>
+      </div>
+
+      <p>Total Price: <strong>Rs.<span id="totalPrice">0</span></strong></p>
+      <button type="submit">Submit</button>
+      <p id="message"></p>
+    </form>
+  </div>
+
+  <script>
+    const totalPriceEl = document.getElementById("totalPrice");
+    const messageEl = document.getElementById("message");
+    const addressBox = document.getElementById("addressBox");
+
+    function updateTotal() {
+      const total = [...document.querySelectorAll('input[type="checkbox"]:checked')]
+        .reduce((sum, item) => sum + Number(item.value), 0);
+      totalPriceEl.textContent = total;
+    }
+
+    function validateForm() {
+      const name = document.getElementById("customerName").value.trim();
+      const items = document.querySelectorAll('input[type="checkbox"]:checked').length;
+      const orderType = document.querySelector('input[name="orderType"]:checked');
+      const address = document.getElementById("address").value.trim();
+      if (name.length < 2) return "Customer name is required.";
+      if (!items) return "Select at least one menu item.";
+      if (!orderType) return "Choose delivery or pickup.";
+      if (orderType.value === "Delivery" && address.length < 5) return "Address is required for delivery.";
+      return "";
+    }
+
+    document.querySelectorAll('input[type="checkbox"]').forEach((box) => box.addEventListener("change", updateTotal));
+    document.querySelectorAll('input[name="orderType"]').forEach((radio) => {
+      radio.addEventListener("change", () => {
+        addressBox.classList.toggle("hidden", radio.value !== "Delivery");
+      });
+    });
+
+    document.getElementById("orderForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const error = validateForm();
+      if (error) {
+        messageEl.className = "error";
+        messageEl.textContent = error;
+        return;
+      }
+      messageEl.textContent = "Submitting order...";
+      setTimeout(() => {
+        messageEl.className = "success";
+        messageEl.textContent = "Order placed successfully using simulated AJAX.";
+      }, 800);
+    });
+  </script>
+</body>
+</html>

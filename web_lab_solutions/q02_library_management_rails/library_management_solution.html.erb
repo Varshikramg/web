@@ -1,0 +1,50 @@
+<h1>Library Management System - Rails MVC</h1>
+
+<h2>Run</h2>
+<pre>
+rails new library_system
+cd library_system
+rails generate scaffold Author name:string
+rails generate scaffold Book title:string isbn:string author:references
+rails generate scaffold Member name:string email:string
+rails generate scaffold Issue member:references book:references issued_on:date returned_on:date
+rails db:create db:migrate
+rails server
+</pre>
+
+<h2>Model Associations</h2>
+<pre>
+class Author &lt; ApplicationRecord
+  has_many :books, dependent: :destroy
+  validates :name, presence: true
+end
+
+class Book &lt; ApplicationRecord
+  belongs_to :author
+  has_many :issues, dependent: :destroy
+  validates :title, :isbn, presence: true
+end
+
+class Member &lt; ApplicationRecord
+  has_many :issues, dependent: :destroy
+  has_many :books, through: :issues
+end
+
+class Issue &lt; ApplicationRecord
+  belongs_to :member
+  belongs_to :book
+end
+</pre>
+
+<h2>routes.rb</h2>
+<pre>
+Rails.application.routes.draw do
+  root "books#index"
+  resources :authors
+  resources :books
+  resources :members
+  resources :issues
+end
+</pre>
+
+<p>Use scaffold-generated CRUD pages for authors, books, members, and issues.</p>

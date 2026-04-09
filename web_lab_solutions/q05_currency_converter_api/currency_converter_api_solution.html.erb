@@ -1,0 +1,47 @@
+<h1>Currency Converter REST API - Rails</h1>
+
+<h2>Run</h2>
+<pre>
+rails new currency_api --api
+cd currency_api
+rails generate controller Api::Conversions convert
+rails server
+</pre>
+
+<h2>routes.rb</h2>
+<pre>
+Rails.application.routes.draw do
+  namespace :api do
+    post "convert", to: "conversions#convert"
+  end
+end
+</pre>
+
+<h2>app/controllers/api/conversions_controller.rb</h2>
+<pre>
+class Api::ConversionsController &lt; ApplicationController
+  RATES = {
+    "USD_INR" =&gt; 83.0,
+    "INR_USD" =&gt; 0.012,
+    "USD_EUR" =&gt; 0.92,
+    "EUR_USD" =&gt; 1.08
+  }
+
+  def convert
+    amount = params[:amount].to_f
+    from = params[:from].to_s.upcase
+    to = params[:to].to_s.upcase
+    return render json: { error: "Amount must be greater than 0" }, status: :unprocessable_entity if amount &lt;= 0
+
+    rate = RATES["#{from}_#{to}"]
+    return render json: { error: "Unsupported currency pair" }, status: :unprocessable_entity unless rate
+
+    render json: {
+      from: from,
+      to: to,
+      amount: amount,
+      converted_amount: (amount * rate).round(2)
+    }
+  end
+end
+</pre>

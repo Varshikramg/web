@@ -1,0 +1,39 @@
+<h1>Unit Converter - Rails JSON</h1>
+
+<h2>Run</h2>
+<pre>
+rails new unit_converter
+cd unit_converter
+rails generate controller Api::Units convert
+rails server
+</pre>
+
+<h2>routes.rb</h2>
+<pre>
+Rails.application.routes.draw do
+  namespace :api do
+    get "convert", to: "units#convert"
+  end
+end
+</pre>
+
+<h2>Controller</h2>
+<pre>
+class Api::UnitsController &lt; ApplicationController
+  def convert
+    value = params[:value].to_f
+    mode = params[:mode]
+
+    result = case mode
+             when "meter_to_kilometer"
+               value / 1000.0
+             when "gram_to_kilogram"
+               value / 1000.0
+             else
+               return render json: { error: "Invalid conversion mode" }, status: :unprocessable_entity
+             end
+
+    render json: { input: value, mode: mode, result: result }
+  end
+end
+</pre>

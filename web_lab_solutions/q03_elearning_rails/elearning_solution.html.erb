@@ -1,0 +1,47 @@
+<h1>E-Learning Platform - Rails MVC</h1>
+
+<h2>Run</h2>
+<pre>
+rails new elearning_platform
+cd elearning_platform
+bundle add bcrypt
+rails generate model User name:string email:string password_digest:string
+rails generate model Course title:string description:text user:references
+rails generate model Lesson title:string content:text course:references
+rails generate model Enrollment user:references course:references
+rails generate controller Sessions new create destroy
+rails generate scaffold Courses title:string description:text user:references
+rails generate scaffold Lessons title:string content:text course:references
+rails db:create db:migrate
+rails server
+</pre>
+
+<h2>Models</h2>
+<pre>
+class User &lt; ApplicationRecord
+  has_secure_password
+  has_many :courses, dependent: :destroy
+  has_many :enrollments, dependent: :destroy
+  has_many :enrolled_courses, through: :enrollments, source: :course
+  validates :name, :email, presence: true
+end
+
+class Course &lt; ApplicationRecord
+  belongs_to :user
+  has_many :lessons, dependent: :destroy
+  has_many :enrollments, dependent: :destroy
+  has_many :users, through: :enrollments
+end
+
+class Lesson &lt; ApplicationRecord
+  belongs_to :course
+end
+
+class Enrollment &lt; ApplicationRecord
+  belongs_to :user
+  belongs_to :course
+  validates :user_id, uniqueness: { scope: :course_id }
+end
+</pre>
+
+<p>Create login and signup forms, then use scaffold CRUD for courses and lessons.</p>

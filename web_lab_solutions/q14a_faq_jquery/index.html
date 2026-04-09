@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ Accordion</title>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #edf2f4; padding: 30px; }
+    .faq { max-width: 700px; margin: auto; background: #fff; border-radius: 12px; overflow: hidden; }
+    .question { padding: 18px; border-bottom: 1px solid #ddd; cursor: pointer; background: #fafafa; }
+    .answer { display: none; padding: 18px; color: #333; }
+  </style>
+</head>
+<body>
+  <div class="faq">
+    <div class="question">What is HTML?</div>
+    <div class="answer">HTML stands for HyperText Markup Language.</div>
+    <div class="question">What is CSS?</div>
+    <div class="answer">CSS is used to style and design web pages.</div>
+    <div class="question">What is JavaScript?</div>
+    <div class="answer">JavaScript adds behavior and interactivity to web pages.</div>
+  </div>
+
+  <script>
+    $(".question").on("click", function () {
+      const answer = $(this).next(".answer");
+      $(".answer").not(answer).slideUp();
+      answer.stop(true, true).slideToggle();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<h1>Student Course Enrollment - Rails</h1>
+
+<h2>Run</h2>
+<pre>
+rails new enrollment_system
+cd enrollment_system
+rails generate model Student name:string email:string
+rails generate model Course name:string instructor:string
+rails generate model Lesson name:string description:text course:references
+rails generate model Enrollment student:references course:references
+rails generate controller Dashboard index enroll
+rails db:create db:migrate
+rails server
+</pre>
+
+<h2>Models</h2>
+<pre>
+class Student &lt; ApplicationRecord
+  has_many :enrollments, dependent: :destroy
+  has_many :courses, through: :enrollments
+end
+
+class Course &lt; ApplicationRecord
+  has_many :lessons, dependent: :destroy
+  has_many :enrollments, dependent: :destroy
+  has_many :students, through: :enrollments
+end
+
+class Lesson &lt; ApplicationRecord
+  belongs_to :course
+end
+
+class Enrollment &lt; ApplicationRecord
+  belongs_to :student
+  belongs_to :course
+  validates :student_id, uniqueness: { scope: :course_id, message: "already enrolled in this course" }
+end
+</pre>
+
+<h2>routes.rb</h2>
+<pre>
+Rails.application.routes.draw do
+  root "dashboard#index"
+  post "enroll", to: "dashboard#enroll"
+end
+</pre>

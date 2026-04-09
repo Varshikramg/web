@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flight Booking System</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #eef7ff; padding: 24px; }
+    .box { max-width: 760px; margin: auto; background: #fff; padding: 24px; border-radius: 12px; }
+    .hidden { display: none; }
+    .error { color: #b00020; }
+    .success { color: #0a7a28; }
+    label { display: block; margin: 8px 0; }
+    input[type="text"] { width: 100%; padding: 10px; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Flight Booking System</h1>
+    <form id="flightForm">
+      <label>Passenger Name
+        <input type="text" id="passengerName" placeholder="Minimum 2 characters">
+      </label>
+
+      <p><strong>Destination</strong></p>
+      <label><input type="checkbox" value="Delhi" data-price="4000"> Delhi</label>
+      <label><input type="checkbox" value="Mumbai" data-price="5000"> Mumbai</label>
+      <label><input type="checkbox" value="Chennai" data-price="4500"> Chennai</label>
+      <label><input type="checkbox" value="Kolkata" data-price="4800"> Kolkata</label>
+
+      <p><strong>Travel Class</strong></p>
+      <label><input type="radio" name="travelClass" value="Economy" data-multiplier="1"> Economy</label>
+      <label><input type="radio" name="travelClass" value="Business" data-multiplier="1.6"> Business</label>
+      <label><input type="radio" name="travelClass" value="First" data-multiplier="2.1"> First</label>
+
+      <div id="seatBox" class="hidden">
+        <label>Seat Preference
+          <select id="seatPreference">
+            <option value="">Select seat</option>
+            <option>Window</option>
+            <option>Aisle</option>
+            <option>Front Row</option>
+          </select>
+        </label>
+      </div>
+
+      <p>Dynamic Price: <strong>Rs.<span id="price">0</span></strong></p>
+      <button type="submit">Submit</button>
+      <button type="reset">Reset</button>
+      <p id="message"></p>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById("flightForm");
+    const priceEl = document.getElementById("price");
+    const messageEl = document.getElementById("message");
+    const seatBox = document.getElementById("seatBox");
+
+    function updatePrice() {
+      const destination = document.querySelector('input[type="checkbox"]:checked');
+      const travelClass = document.querySelector('input[name="travelClass"]:checked');
+      if (!destination || !travelClass) {
+        priceEl.textContent = "0";
+        return;
+      }
+      const basePrice = Number(destination.dataset.price);
+      const multiplier = Number(travelClass.dataset.multiplier);
+      priceEl.textContent = Math.round(basePrice * multiplier);
+    }
+
+    document.querySelectorAll('input[type="checkbox"]').forEach((box) => {
+      box.addEventListener("change", (event) => {
+        if (event.target.checked) {
+          document.querySelectorAll('input[type="checkbox"]').forEach((item) => {
+            if (item !== event.target) item.checked = false;
+          });
+        }
+        updatePrice();
+      });
+    });
+
+    document.querySelectorAll('input[name="travelClass"]').forEach((radio) => {
+      radio.addEventListener("change", () => {
+        const premium = radio.value === "Business" || radio.value === "First";
+        seatBox.classList.toggle("hidden", !premium);
+        updatePrice();
+      });
+    });
+
+    function validateForm() {
+      const name = document.getElementById("passengerName").value.trim();
+      const destination = document.querySelector('input[type="checkbox"]:checked');
+      const travelClass = document.querySelector('input[name="travelClass"]:checked');
+      const seat = document.getElementById("seatPreference").value;
+      if (name.length < 2) return "Passenger name must be at least 2 characters.";
+      if (!destination) return "Select one destination.";
+      if (!travelClass) return "Choose a travel class.";
+      if ((travelClass.value === "Business" || travelClass.value === "First") && !seat) {
+        return "Select seat preference for premium classes.";
+      }
+      return "";
+    }
+
+    form.addEventListener("reset", () => {
+      setTimeout(() => {
+        priceEl.textContent = "0";
+        seatBox.classList.add("hidden");
+        messageEl.textContent = "";
+      }, 0);
+    });
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const error = validateForm();
+      if (error) {
+        messageEl.className = "error";
+        messageEl.textContent = error;
+        return;
+      }
+      messageEl.textContent = "Submitting booking...";
+      setTimeout(() => {
+        messageEl.className = "success";
+        messageEl.textContent = `Booking successful. Ticket price: Rs.${priceEl.textContent}`;
+      }, 900);
+    });
+  </script>
+</body>
+</html>

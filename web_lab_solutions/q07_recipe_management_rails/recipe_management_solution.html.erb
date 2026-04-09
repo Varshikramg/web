@@ -1,0 +1,39 @@
+<h1>Recipe Management System - Rails MVC</h1>
+
+<h2>Run</h2>
+<pre>
+rails new recipe_system
+cd recipe_system
+rails generate scaffold User name:string email:string
+rails generate scaffold Recipe title:string ingredients:text user:references
+rails generate scaffold Comment title:string user:references recipe:references
+rails db:create db:migrate
+rails server
+</pre>
+
+<h2>Models</h2>
+<pre>
+class User &lt; ApplicationRecord
+  has_many :recipes, dependent: :destroy
+  has_many :comments, dependent: :destroy
+end
+
+class Recipe &lt; ApplicationRecord
+  belongs_to :user
+  has_many :comments, dependent: :destroy
+end
+
+class Comment &lt; ApplicationRecord
+  belongs_to :user
+  belongs_to :recipe
+end
+</pre>
+
+<h2>Recipe Show View</h2>
+<pre>
+&lt;h2&gt;&lt;%= @recipe.title %&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;%= @recipe.ingredients %&gt;&lt;/p&gt;
+&lt;% @recipe.comments.includes(:user).each do |comment| %&gt;
+  &lt;p&gt;&lt;strong&gt;&lt;%= comment.user.name %&gt;:&lt;/strong&gt; &lt;%= comment.title %&gt;&lt;/p&gt;
+&lt;% end %&gt;
+</pre>
