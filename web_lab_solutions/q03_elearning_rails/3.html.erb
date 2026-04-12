@@ -45,3 +45,99 @@ end
 </pre>
 
 <p>Create login and signup forms, then use scaffold CRUD for courses and lessons.</p>
+
+
+# Elearning Platform (Rails)
+
+Brief steps to create and run this app using the terminal, plus what you need
+to change for your own setup.
+
+## 1) Create the app
+```powershell
+rails new elearning_platform
+cd elearning_platform
+```
+
+## 2) Generate models
+```powershell
+rails g model User name:string email:string password_digest:string
+rails g model Course title:string description:text user:references
+rails g model Lesson title:string content:text course:references
+rails g model Enrollment user:references course:references
+```
+
+## 3) Add associations and validations
+Edit these files:
+- app/models/user.rb
+- app/models/course.rb
+- app/models/lesson.rb
+- app/models/enrollment.rb
+
+Change each file to include:
+```ruby
+# app/models/user.rb
+has_secure_password
+has_many :courses, dependent: :destroy
+has_many :enrollments, dependent: :destroy
+has_many :enrolled_courses, through: :enrollments, source: :course
+validates :name, :email, presence: true
+
+# app/models/course.rb
+belongs_to :user
+has_many :lessons, dependent: :destroy
+has_many :enrollments, dependent: :destroy
+has_many :users, through: :enrollments
+
+# app/models/lesson.rb
+belongs_to :course
+
+# app/models/enrollment.rb
+belongs_to :user
+belongs_to :course
+validates :user_id, uniqueness: { scope: :course_id }
+```
+
+## 4) Create controllers + views
+```powershell
+rails g controller Users
+rails g controller Courses
+rails g controller Lessons
+rails g controller Enrollments
+```
+
+Then add CRUD actions and views (index, show, new, edit) for each resource.
+If you want a quick starting point, scaffold is faster:
+```powershell
+rails g scaffold User name:string email:string password_digest:string
+rails g scaffold Course title:string description:text user:references
+rails g scaffold Lesson title:string content:text course:references
+rails g scaffold Enrollment user:references course:references
+```
+
+## 5) Update routes
+Edit `config/routes.rb` and change to:
+```ruby
+root "sessions#new"
+resources :users
+resources :courses
+resources :lessons
+resources :enrollments
+```
+
+## 6) Migrate and run
+```powershell
+rails db:migrate
+rails server
+```
+
+Visit:
+- http://127.0.0.1:3000/users
+- http://127.0.0.1:3000/courses
+- http://127.0.0.1:3000/lessons
+- http://127.0.0.1:3000/enrollments
+
+## What to change for your own project
+- Change model fields in `rails g model ...` commands to match your data.
+- Update validations and relations in `app/models/*.rb`.
+- Replace the example controllers/views with your app’s real UI.
+- Update `config/routes.rb` to only include resources you actually need.
