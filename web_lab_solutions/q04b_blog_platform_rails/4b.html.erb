@@ -46,3 +46,439 @@ For tags you can either:
 1. Add a `tags` string column to posts and store comma-separated tags, or
 2. Use the `acts-as-taggable-on` gem for a proper tagging system.
 </pre>
+
+
+
+# Blog Platform (Rails 8)
+
+This project is a simple blog platform built with Ruby on Rails.
+It includes:
+
+- `User` model with `has_secure_password`
+- `Category` model
+- `Post` model (belongs to user and category, has rich text content)
+- `Comment` model (belongs to user and post)
+- Basic index pages for `users`, `posts`, `categories`, and `comments`
+
+---
+
+## 1. Prerequisites
+
+Use these versions (or compatible):
+
+- Ruby: `3.2.10` (from `.ruby-version`)
+- Rails: `~> 8.1.3`
+- SQLite3
+- Bundler
+
+Check versions:
+
+```bash
+ruby -v
+bundle -v
+```
+
+---
+
+## 2. Setup And Run (Step By Step)
+
+### Step 1: Go to project folder
+
+```bash
+cd c:\Users\Karim\OneDrive\Desktop\blog_platform
+```
+
+### Step 2: Install gems
+
+```bash
+bundle install
+```
+
+### Step 3: Create and migrate development database
+
+```bash
+ruby bin/rails db:create
+ruby bin/rails db:migrate
+```
+
+### Step 4: Create and migrate test database
+
+```bash
+ruby bin/rails db:create RAILS_ENV=test
+ruby bin/rails db:migrate RAILS_ENV=test
+```
+
+### Step 5: Start Rails server
+
+```bash
+ruby bin/rails server
+```
+
+Open in browser:
+
+- `http://127.0.0.1:3000/`
+- `http://127.0.0.1:3000/posts`
+- `http://127.0.0.1:3000/users`
+- `http://127.0.0.1:3000/categories`
+- `http://127.0.0.1:3000/comments`
+
+---
+
+## 3. If You Want To Recreate This App From Scratch
+
+Run these commands:
+
+```bash
+rails new blog_platform
+cd blog_platform
+bundle add bcrypt
+ruby bin/rails action_text:install
+ruby bin/rails generate model User name:string email:string password_digest:string
+ruby bin/rails generate model Category name:string
+ruby bin/rails generate model Post title:string published:boolean user:references category:references
+ruby bin/rails generate model Comment body:text user:references post:references
+ruby bin/rails generate controller Sessions new create destroy
+ruby bin/rails db:create
+ruby bin/rails db:migrate
+```
+
+Then add the code shown in the next sections.
+
+---
+
+## 4. Routes Code
+
+File: `config/routes.rb`
+
+```ruby
+Rails.application.routes.draw do
+  resources :users, only: [:index]
+  resources :posts, only: [:index]
+  resources :categories, only: [:index]
+  resources :comments, only: [:index]
+
+  get "sessions/new"
+  get "sessions/create"
+  get "sessions/destroy"
+
+  get "up" => "rails/health#show", as: :rails_health_check
+
+  root "posts#index"
+end
+```
+
+---
+
+## 5. Model Codes
+
+### `app/models/user.rb`
+
+```ruby
+class User < ApplicationRecord
+  has_secure_password
+  has_many :posts, dependent: :destroy
+  has_many :comments, dependent: :destroy
+end
+```
+
+### `app/models/category.rb`
+
+```ruby
+class Category < ApplicationRecord
+  has_many :posts
+end
+```
+
+### `app/models/post.rb`
+
+```ruby
+class Post < ApplicationRecord
+  belongs_to :user
+  belongs_to :category
+  has_rich_text :content
+  has_many :comments, dependent: :destroy
+end
+```
+
+### `app/models/comment.rb`
+
+```ruby
+class Comment < ApplicationRecord
+  belongs_to :user
+  belongs_to :post
+end
+```
+
+---
+
+## 6. Controller Codes
+
+### `app/controllers/users_controller.rb`
+
+```ruby
+class UsersController < ApplicationController
+  def index
+    @users = User.includes(:posts, :comments).order(:created_at)
+  end
+end
+```
+
+### `app/controllers/posts_controller.rb`
+
+```ruby
+class PostsController < ApplicationController
+  def index
+    @posts = Post.includes(:user, :category).order(:created_at)
+  end
+end
+```
+
+### `app/controllers/categories_controller.rb`
+
+```ruby
+class CategoriesController < ApplicationController
+  def index
+    @categories = Category.includes(:posts).order(:created_at)
+  end
+end
+```
+
+### `app/controllers/comments_controller.rb`
+
+```ruby
+class CommentsController < ApplicationController
+  def index
+    @comments = Comment.includes(:user, :post).order(:created_at)
+  end
+end
+```
+
+### `app/controllers/sessions_controller.rb`
+
+```ruby
+class SessionsController < ApplicationController
+  def new
+  end
+
+  def create
+  end
+
+  def destroy
+  end
+end
+```
+
+---
+
+## 7. View Codes
+
+### `app/views/posts/index.html.erb`
+
+```erb
+<h1>Posts</h1>
+
+<% if @posts.any? %>
+  <ul>
+    <% @posts.each do |post| %>
+      <li>
+        <strong><%= post.title.presence || "Untitled Post" %></strong>
+        - <%= post.published? ? "Published" : "Draft" %>
+        - Author: <%= post.user&.name.presence || "Unknown User" %>
+        - Category: <%= post.category&.name.presence || "Uncategorized" %>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>No posts found yet.</p>
+<% end %>
+```
+
+### `app/views/users/index.html.erb`
+
+```erb
+<h1>Users</h1>
+
+<% if @users.any? %>
+  <ul>
+    <% @users.each do |user| %>
+      <li>
+        <strong><%= user.name.presence || "Unnamed User" %></strong>
+        <% if user.email.present? %>
+          (<%= user.email %>)
+        <% end %>
+        - Posts: <%= user.posts.size %>, Comments: <%= user.comments.size %>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>No users found yet.</p>
+<% end %>
+```
+
+### `app/views/categories/index.html.erb`
+
+```erb
+<h1>Categories</h1>
+
+<% if @categories.any? %>
+  <ul>
+    <% @categories.each do |category| %>
+      <li>
+        <strong><%= category.name.presence || "Unnamed Category" %></strong>
+        - Posts: <%= category.posts.size %>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>No categories found yet.</p>
+<% end %>
+```
+
+### `app/views/comments/index.html.erb`
+
+```erb
+<h1>Comments</h1>
+
+<% if @comments.any? %>
+  <ul>
+    <% @comments.each do |comment| %>
+      <li>
+        <strong><%= comment.user&.name.presence || "Unknown User" %></strong>
+        on
+        <em><%= comment.post&.title.presence || "Untitled Post" %></em>:
+        <%= comment.body %>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>No comments found yet.</p>
+<% end %>
+```
+
+---
+
+## 8. Migration Codes
+
+### `db/migrate/20260412164752_create_users.rb`
+
+```ruby
+class CreateUsers < ActiveRecord::Migration[8.1]
+  def change
+    create_table :users do |t|
+      t.string :name
+      t.string :email
+      t.string :password_digest
+
+      t.timestamps
+    end
+  end
+end
+```
+
+### `db/migrate/20260412164813_create_categories.rb`
+
+```ruby
+class CreateCategories < ActiveRecord::Migration[8.1]
+  def change
+    create_table :categories do |t|
+      t.string :name
+
+      t.timestamps
+    end
+  end
+end
+```
+
+### `db/migrate/20260412164825_create_posts.rb`
+
+```ruby
+class CreatePosts < ActiveRecord::Migration[8.1]
+  def change
+    create_table :posts do |t|
+      t.string :title
+      t.boolean :published
+      t.references :user, null: false, foreign_key: true
+      t.references :category, null: false, foreign_key: true
+
+      t.timestamps
+    end
+  end
+end
+```
+
+### `db/migrate/20260412164834_create_comments.rb`
+
+```ruby
+class CreateComments < ActiveRecord::Migration[8.1]
+  def change
+    create_table :comments do |t|
+      t.text :body
+      t.references :user, null: false, foreign_key: true
+      t.references :post, null: false, foreign_key: true
+
+      t.timestamps
+    end
+  end
+end
+```
+
+---
+
+## 9. Useful Commands
+
+List all routes:
+
+```bash
+ruby bin/rails routes
+```
+
+Run tests:
+
+```bash
+ruby bin/rails test
+```
+
+Check autoloading (Zeitwerk):
+
+```bash
+ruby bin/rails zeitwerk:check
+```
+
+---
+
+## 10. Common Errors And Fixes
+
+### Error: `No route matches [GET] "/posts"` (or `/users`, `/comments`, `/categories`)
+
+Cause:
+
+- Missing route in `config/routes.rb`
+
+Fix:
+
+- Add `resources :posts`, `resources :users`, `resources :categories`, `resources :comments`
+- Restart server
+
+### Error: `Migrations are pending`
+
+Cause:
+
+- Database schema not applied in current environment
+
+Fix:
+
+```bash
+ruby bin/rails db:migrate
+ruby bin/rails db:migrate RAILS_ENV=test
+```
+
+---
+
+## 11. Current Status
+
+After applying the code above:
+
+- Routes are available for `/`, `/posts`, `/users`, `/categories`, `/comments`
+- Tests pass
+- App starts and pages render without routing errors
+
